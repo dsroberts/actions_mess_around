@@ -14,13 +14,36 @@ on:
 jobs:
   build:
     env:
-      THING: ${{ secrets[format('{0}_USER', inputs.system)] }}
+      USER: ${{ secrets[format('{0}_USER', inputs.system)] }}
+      SSHKEY: ${{ secrets[format('{0}_TESTING_KEY',inputs.system)] }}
+      HOSTKEY: ${{ secrets[format('{0}_HOST_KEY',inputs.system)] }}
     runs-on: ubuntu-latest
     steps:
       ### N.B this step cannot be placed in a composite action
       ### due to secrets access
-      - name: Write a thing
+      - name: Get system FQDN
+        id: get_fqdn
+        shell: bash
         run: |
-          echo "This should be some stars"
-          echo $THING
-      
+          fqdn=$( grep ${{inputs.system}}: .github/systems.txt )
+          echo "fqdn=${fqdn//${{inputs.system}}:/}" >> $GITHUB_OUTPUT
+      - name: Configure SSH
+        shell: bash
+        run: |
+          echo ${{ steps.get_fqdn.outputs.systems }} 
+          mkdir -p ~/.ssh/
+          echo "$SSHKEY" > ~/.ssh/${{inputs.system}}.key
+          chmod 600 ~/.ssh/${{inputs.system}}.key
+          echo "$HOSTKEY" >> ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/known_hosts
+          cat > ~/.ssh/config <<EOF
+          Host ${{inputs.system}}
+            Hostname ${{ steps.get_fqdn.outputs.fqdn }}
+            User "$USER"
+            IdentityFile ~/.ssh/${{inputs.system}}.key
+            ServerAliveInterval 120
+          EOF
+      - name: Try ssh
+        shell: bash
+        run: |
+          ssh ${{ inputs.system }} '/bin/echo "hello there" > ~/my_test_file.txt'
