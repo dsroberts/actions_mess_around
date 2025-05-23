@@ -19,8 +19,8 @@ jobs:
       HOSTKEY: ${{ secrets[format('{0}_HOST_KEY',inputs.system)] }}
     runs-on: ubuntu-latest
     steps:
-      ### N.B this step cannot be placed in a composite action
-      ### due to secrets access
+      - name: Checkout repository
+        uses: actions/checkout@v4
       - name: Get system FQDN
         id: get_fqdn
         shell: bash
