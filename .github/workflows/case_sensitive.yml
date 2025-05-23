@@ -1,0 +1,26 @@
+name: Case sensitivity test
+
+on:
+  workflow_dispatch:
+    inputs:
+      system:
+        description: "Select a system to build on"
+        required: true
+        type: choice
+        options:
+          - gadi
+          - setonix
+
+jobs:
+  build:
+    env:
+      THING: ${{ secrets[format('{0}_USER', inputs.system)] }}
+    runs-on: ubuntu-latest
+    steps:
+      ### N.B this step cannot be placed in a composite action
+      ### due to secrets access
+      - name: Write a thing
+        run: |
+          echo "This should be some stars"
+          echo $THING
+      
