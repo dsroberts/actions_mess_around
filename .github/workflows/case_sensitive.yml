@@ -21,28 +21,14 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-      - name: Get system FQDN
-        id: get_fqdn
-        shell: bash
-        run: |
-          fqdn=$( grep ${{inputs.system}}: .github/systems.txt )
-          echo "fqdn=${fqdn//${{inputs.system}}:/}" >> $GITHUB_OUTPUT
-      - name: Configure SSH
-        shell: bash
-        run: |
-          echo ${{ steps.get_fqdn.outputs.systems }} 
-          mkdir -p ~/.ssh/
-          echo "$SSHKEY" > ~/.ssh/${{inputs.system}}.key
-          chmod 600 ~/.ssh/${{inputs.system}}.key
-          echo "$HOSTKEY" >> ~/.ssh/known_hosts
-          chmod 600 ~/.ssh/known_hosts
-          cat > ~/.ssh/config <<EOF
-          Host ${{inputs.system}}
-            Hostname ${{ steps.get_fqdn.outputs.fqdn }}
-            User "$USER"
-            IdentityFile ~/.ssh/${{inputs.system}}.key
-            ServerAliveInterval 120
-          EOF
+      - name: Setup ssh
+        uses: ./.github/actions/setup_ssh
+        env:
+          TEST_KEY: ${{ secrets[format('{0}_TESTING_KEY',inputs.system)] }}
+          HOST_KEY: ${{ secrets[format('{0}_HOST_KEY',inputs.system)] }}
+          USER: ${{ secrets[format('{0}_USER',inputs.system)] }}
+        with:
+          system: ${{ inputs.system }}
       - name: Try ssh
         shell: bash
         run: |
