@@ -10,6 +10,10 @@ on:
         options:
           - gadi
           - setonix
+      build_branch:
+        description: "Select a firedrake branch to build"
+        required: true
+        type: string
 
 jobs:
   build:
@@ -23,13 +27,13 @@ jobs:
         uses: actions/checkout@v4
       - name: Setup ssh
         uses: ./.github/actions/setup_ssh
-        env:
-          TEST_KEY: ${{ secrets[format('{0}_TESTING_KEY',inputs.system)] }}
-          HOST_KEY: ${{ secrets[format('{0}_HOST_KEY',inputs.system)] }}
-          USER: ${{ secrets[format('{0}_USER',inputs.system)] }}
         with:
           system: ${{ inputs.system }}
       - name: Try ssh
         shell: bash
         run: |
           ssh ${{ inputs.system }} '/bin/echo "hello there" > ~/my_test_file.txt'
+      - name: Whats your problem?
+        if: ${{ inputs.build_branch != "master" && inputs.build_branch != "release" }}
+        run: |
+          echo ${{ inputs.build_branch }}" Hi?"
