@@ -34,6 +34,6 @@ jobs:
         run: |
           ssh ${{ inputs.system }} '/bin/echo "hello there" > ~/my_test_file.txt'
       - name: Whats your problem?
-        if: ${{ inputs.build_branch != "master" && inputs.build_branch != "release" }}
+        if: ${{ inputs.build_branch != 'master' && inputs.build_branch != 'release' }}
         run: |
           echo ${{ inputs.build_branch }}" Hi?"
