@@ -17,8 +17,8 @@ jobs:
       - name: Make plots
         env:
           GH_TOKEN: ${{ github.token }}
+          NRUNS: 10
         run: |
-          export NRUNS=5
           export JSON=$( gh run list -R g-adopt/g-adopt -w test.yml -s success -L "${NRUNS}" --json databaseId,number )
           declare -a RUNIDS=( $( jq --jsonargs '.[].databaseId' <<<"${JSON}" ) )
           declare -a RUNNOS=( $( jq --jsonargs '.[].number' <<<"${JSON}") )
@@ -32,5 +32,5 @@ jobs:
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v4
         with:
-          name: run-log
+          name: memprof_plots
           path: memprof_plots
